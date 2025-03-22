@@ -1,0 +1,195 @@
+// src/scripts/runTests.ts
+
+import fs from 'fs';
+import path from 'path';
+import { validateHTML, checkAccessibility, testPerformance, checkBrowserCompatibility } from '../lib/testUtils';
+
+/**
+ * Run comprehensive tests on the website
+ */
+async function runTests() {
+  console.log('Starting website testing and validation...');
+  
+  // Test results will be stored here
+  const results = {
+    html: { valid: false, errors: [], warnings: [] },
+    accessibility: { issues: [] },
+    performance: {},
+    compatibility: {},
+  };
+  
+  // 1. HTML Validation
+  console.log('\n--- HTML Validation ---');
+  try {
+    // In a real scenario, we would get the HTML from the built pages
+    // For this example, we'll use a sample HTML string
+    const sampleHTML = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Saddam Safi | WordPress Developer Toronto</title>
+      </head>
+      <body>
+        <header>
+          <nav>
+            <a href="/"><img src="/images/logo.png" alt="Saddam Safi Logo"></a>
+            <ul>
+              <li><a href="/">Home</a></li>
+              <li><a href="/about">About</a></li>
+              <li><a href="/services">Services</a></li>
+              <li><a href="/projects">Projects</a></li>
+              <li><a href="/contact-us">Let's Talk</a></li>
+            </ul>
+          </nav>
+        </header>
+        <main>
+          <section>
+            <h1>Saddam Safi | WordPress Developer Toronto</h1>
+            <p>Welcome to my portfolio website!</p>
+          </section>
+        </main>
+        <footer>
+          <p>&copy; 2025 Saddam Safi. All rights reserved.</p>
+        </footer>
+      </body>
+      </html>
+    `;
+    
+    results.html = await validateHTML(sampleHTML);
+    
+    if (results.html.valid) {
+      console.log('✅ HTML validation passed!');
+    } else {
+      console.log('❌ HTML validation failed with errors:');
+      results.html.errors.forEach(error => console.log(`  - ${error}`));
+    }
+    
+    if (results.html.warnings.length > 0) {
+      console.log('⚠️ HTML validation warnings:');
+      results.html.warnings.forEach(warning => console.log(`  - ${warning}`));
+    }
+  } catch (error) {
+    console.error('Error during HTML validation:', error);
+  }
+  
+  // 2. Accessibility Check
+  console.log('\n--- Accessibility Check ---');
+  try {
+    // Using the same sample HTML
+    const sampleHTML = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Saddam Safi | WordPress Developer Toronto</title>
+      </head>
+      <body>
+        <header>
+          <nav>
+            <a href="/"><img src="/images/logo.png" alt="Saddam Safi Logo"></a>
+            <ul>
+              <li><a href="/">Home</a></li>
+              <li><a href="/about">About</a></li>
+              <li><a href="/services">Services</a></li>
+              <li><a href="/projects">Projects</a></li>
+              <li><a href="/contact-us">Let's Talk</a></li>
+            </ul>
+          </nav>
+        </header>
+        <main>
+          <section>
+            <h1>Saddam Safi | WordPress Developer Toronto</h1>
+            <p>Welcome to my portfolio website!</p>
+          </section>
+        </main>
+        <footer>
+          <p>&copy; 2025 Saddam Safi. All rights reserved.</p>
+        </footer>
+      </body>
+      </html>
+    `;
+    
+    results.accessibility = checkAccessibility(sampleHTML);
+    
+    if (results.accessibility.issues.length === 0) {
+      console.log('✅ No accessibility issues found!');
+    } else {
+      console.log(`⚠️ Found ${results.accessibility.issues.length} accessibility issues:`);
+      results.accessibility.issues.forEach(issue => {
+        console.log(`  - [${issue.impact.toUpperCase()}] ${issue.message}`);
+      });
+    }
+  } catch (error) {
+    console.error('Error during accessibility check:', error);
+  }
+  
+  // 3. Performance Testing
+  console.log('\n--- Performance Testing ---');
+  try {
+    // In a real scenario, we would test the deployed website
+    // For this example, we'll use a placeholder URL
+    results.performance = await testPerformance('https://example.com');
+    
+    console.log('Performance Score:', results.performance.performance);
+    console.log('Accessibility Score:', results.performance.accessibility);
+    console.log('Best Practices Score:', results.performance.bestPractices);
+    console.log('SEO Score:', results.performance.seo);
+    console.log('Key Metrics:');
+    console.log(`  - First Contentful Paint: ${results.performance.metrics.firstContentfulPaint}`);
+    console.log(`  - Largest Contentful Paint: ${results.performance.metrics.largestContentfulPaint}`);
+    console.log(`  - Time to Interactive: ${results.performance.metrics.timeToInteractive}`);
+    console.log(`  - Total Blocking Time: ${results.performance.metrics.totalBlockingTime}`);
+    console.log(`  - Cumulative Layout Shift: ${results.performance.metrics.cumulativeLayoutShift}`);
+  } catch (error) {
+    console.error('Error during performance testing:', error);
+  }
+  
+  // 4. Browser Compatibility Check
+  console.log('\n--- Browser Compatibility Check ---');
+  try {
+    const features = [
+      'css-grid',
+      'flexbox',
+      'webp',
+      'avif',
+      'intersection-observer',
+      'css-variables'
+    ];
+    
+    results.compatibility = checkBrowserCompatibility(features);
+    
+    console.log('Browser Compatibility Results:');
+    Object.entries(results.compatibility).forEach(([feature, support]) => {
+      console.log(`\n${feature}:`);
+      Object.entries(support).forEach(([browser, isSupported]) => {
+        console.log(`  - ${browser}: ${isSupported ? '✅ Supported' : '❌ Not Supported'}`);
+      });
+    });
+  } catch (error) {
+    console.error('Error during browser compatibility check:', error);
+  }
+  
+  // 5. Save Test Results
+  console.log('\n--- Saving Test Results ---');
+  try {
+    const resultsDir = path.join(process.cwd(), 'test-results');
+    if (!fs.existsSync(resultsDir)) {
+      fs.mkdirSync(resultsDir, { recursive: true });
+    }
+    
+    const resultsPath = path.join(resultsDir, `test-results-${new Date().toISOString().replace(/:/g, '-')}.json`);
+    fs.writeFileSync(resultsPath, JSON.stringify(results, null, 2));
+    
+    console.log(`Test results saved to: ${resultsPath}`);
+  } catch (error) {
+    console.error('Error saving test results:', error);
+  }
+  
+  console.log('\nTesting and validation completed!');
+}
+
+// Run the tests
+runTests().catch(console.error);
